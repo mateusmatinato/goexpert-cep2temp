@@ -3,10 +3,11 @@ package cep
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 
-	"github.com/mateusmatinato/goexpert-cep2temp/internal/platform/errors"
+	internalErrors "github.com/mateusmatinato/goexpert-cep2temp/internal/platform/errors"
 )
 
 const (
@@ -27,20 +28,25 @@ type service struct {
 func (s service) GetInfo(_ context.Context, request Request) (Response, error) {
 	res, err := s.client.Get(fmt.Sprintf(s.apiConfig.URL, request.Cep))
 	if err != nil {
-		if res != nil && res.StatusCode == http.StatusNotFound {
-			return Response{}, errors.NewNotFoundError(NotFoundCEP, err)
-		}
-		return Response{}, errors.NewApplicationError(FailedGetInfo, err)
+		return Response{}, internalErrors.NewApplicationError(FailedGetInfo, err)
+	}
+
+	if res.StatusCode == http.StatusNotFound {
+		return Response{}, internalErrors.NewNotFoundError(NotFoundCEP, err)
+	}
+	if res.StatusCode != http.StatusOK {
+		return Response{}, internalErrors.NewApplicationError(FailedGetInfo,
+			errors.New(fmt.Sprintf("status_code:%d", res.StatusCode)))
 	}
 
 	var resp Response
 	err = json.NewDecoder(res.Body).Decode(&resp)
 	if err != nil {
-		return Response{}, errors.NewApplicationError(FailedUnmarshall, err)
+		return Response{}, internalErrors.NewApplicationError(FailedUnmarshall, err)
 	}
 
 	if resp.City == "" {
-		return Response{}, errors.NewNotFoundError(NotFoundCEP, err)
+		return Response{}, internalErrors.NewNotFoundError(NotFoundCEP, err)
 	}
 
 	return resp, nil

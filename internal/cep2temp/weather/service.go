@@ -3,11 +3,12 @@ package weather
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
 
-	"github.com/mateusmatinato/goexpert-cep2temp/internal/platform/errors"
+	internalErrors "github.com/mateusmatinato/goexpert-cep2temp/internal/platform/errors"
 )
 
 const (
@@ -28,13 +29,17 @@ func (s service) GetInfo(_ context.Context, request Request) (Response, error) {
 	weatherURL := fmt.Sprintf(s.apiConfig.URL, s.apiConfig.APIKey, url.QueryEscape(request.Query))
 	res, err := s.client.Get(weatherURL)
 	if err != nil {
-		return Response{}, errors.NewApplicationError(FailedGetInfo, err)
+		return Response{}, internalErrors.NewApplicationError(FailedGetInfo, err)
+	}
+	if res.StatusCode != http.StatusOK {
+		return Response{}, internalErrors.NewApplicationError(FailedGetInfo,
+			errors.New(fmt.Sprintf("status_code:%d", res.StatusCode)))
 	}
 
 	var resp Response
 	err = json.NewDecoder(res.Body).Decode(&resp)
 	if err != nil {
-		return Response{}, errors.NewApplicationError(FailedUnmarshall, err)
+		return Response{}, internalErrors.NewApplicationError(FailedUnmarshall, err)
 	}
 
 	return resp, nil

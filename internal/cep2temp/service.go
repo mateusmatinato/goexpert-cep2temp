@@ -27,14 +27,14 @@ func (s service) GetTemperatureByCEP(ctx context.Context, request Request) (Resp
 	cepRequest := request.BuildCEPRequest()
 	cepResponse, err := s.cepService.GetInfo(ctx, cepRequest)
 	if err != nil {
-		log.Printf("error getting cep info: %#v\n", err)
+		log.Printf("error getting cep info: %v\n", err)
 		return Response{}, err
 	}
 
 	weatherRequest := NewWeatherRequest(cepResponse)
 	weatherResponse, err := s.weatherService.GetInfo(ctx, weatherRequest)
 	if err != nil {
-		log.Printf("error getting weather info: %#v\n", err)
+		log.Printf("error getting weather info: %v\n", err)
 		return Response{}, err
 	}
 
