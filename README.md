@@ -57,3 +57,6 @@ Deploy realizado no Google Cloud Run (free tier) e endereço ativo para ser aces
 ### Tests
 - You can locally test the http calls using the .http files in the http folder
 - You can test the app running on Google Cloud Run in the url: https://goexpert-cep2temp-ec355himpa-rj.a.run.app/cep2temp/{CEP}
+
+### Contact
+- mateusmatinato@gmail.com
